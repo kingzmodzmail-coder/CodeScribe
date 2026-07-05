@@ -1,0 +1,28 @@
+{
+  "name": "codescribe",
+  "displayName": "CodeScribe",
+  "description": "AI chatbot and coding agent",
+  "version": "0.0.1",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Machine Learning", "Chat"],
+  "activationEvents": ["onCommand:codescribe.openChat"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codescribe.openChat",
+        "title": "Open CodeScribe",
+        "category": "CodeScribe"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CodeScribe</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    #history { border: 1px solid #ddd; border-radius: 8px; min-height: 300px; padding: 1rem; overflow-y: auto; }
+    .msg { margin: 0.5rem 0; line-height: 1.5; white-space: pre-wrap; }
+    .user { color: #0066cc; }
+    .assistant { color: #222; }
+    #input-row { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    input { flex: 1; padding: 0.5rem; font-size: 1rem; }
+    button { padding: 0.5rem 1rem; }
+  </style>
+</head>
+<body>
+  <h1>CodeScribe Chatbot</h1>
+  <div id="history"></div>
+  <div id="input-row">
+    <input id="msg" placeholder="Ask anything..." />
+    <button onclick="send()">Send</button>
+  </div>
+
+<script>
+const historyEl = document.getElementById('history');
+const msgEl = document.getElementById('msg');
+let messages = [];
+
+async function send() {
+  const text = msgEl.value.trim();
+  if (!text) return;
+  messages.push({ role: 'user', content: text });
+  render();
+  msgEl.value = '';
+
+  const res = await fetch('http://localhost:8000/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, mode: 'chat' })
+  });
+  const data = await res.json();
+  messages.push({ role: 'assistant', content: data.reply });
+  render();
+}
+
+function render() {
+  historyEl.innerHTML = messages.map(m =>
+    `<div class="msg ${m.role}"><b>${m.role}:</b> ${escapeHtml(m.content)}</div>`
+  ).join('');
+  historyEl.scrollTop = historyEl.scrollHeight;
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+msgEl.addEventListener('keypress', e => { if (e.key === 'Enter') send(); });
+</script>
+</body>
+</html>
