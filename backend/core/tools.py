@@ -57,14 +57,27 @@ TOOL_DEFINITIONS = [
 ]
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
 def _workspace_root(workspace: str) -> Path:
-    return Path(workspace).resolve()
+    requested = Path(workspace)
+    candidate = requested.resolve() if requested.is_absolute() else (REPO_ROOT / requested).resolve()
+    if not candidate.is_dir():
+        raise ValueError("Workspace must be an existing directory")
+    try:
+        candidate.relative_to(REPO_ROOT)
+    except ValueError as exc:
+        raise ValueError("Workspace must stay within the repository") from exc
+    return candidate
 
 
 def _resolve_workspace_path(workspace: str, path: str) -> Path:
     root = _workspace_root(workspace)
     candidate = (root / path).resolve()
-    if os.path.commonpath([root, candidate]) != str(root):
+    try:
+        candidate.relative_to(root)
+    except ValueError as exc:
         raise ValueError("Path must stay within the workspace")
     return candidate
 
