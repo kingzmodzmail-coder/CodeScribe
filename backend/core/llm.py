@@ -24,8 +24,11 @@ def chat(messages, system, workspace=".", use_tools=True, model="gpt-4o-mini", m
 
         full_messages.append(msg.model_dump())
         for call in msg.tool_calls:
-            os.chdir(workspace)
-            result = execute_tool(call.function.name, json.loads(call.function.arguments))
+            result = execute_tool(
+                call.function.name,
+                json.loads(call.function.arguments),
+                workspace=workspace,
+            )
             full_messages.append(
                 {
                     "role": "tool",

@@ -1,5 +1,6 @@
 import os
 import subprocess
+from pathlib import Path
 
 TOOL_DEFINITIONS = [
     {
@@ -56,14 +57,27 @@ TOOL_DEFINITIONS = [
 ]
 
 
-def execute_tool(name: str, args: dict) -> str:
+def _workspace_root(workspace: str) -> Path:
+    return Path(workspace).resolve()
+
+
+def _resolve_workspace_path(workspace: str, path: str) -> Path:
+    root = _workspace_root(workspace)
+    candidate = (root / path).resolve()
+    if os.path.commonpath([root, candidate]) != str(root):
+        raise ValueError("Path must stay within the workspace")
+    return candidate
+
+
+def execute_tool(name: str, args: dict, workspace: str = ".") -> str:
     try:
         if name == "read_file":
-            with open(args["path"], "r") as f:
+            with open(_resolve_workspace_path(workspace, args["path"]), "r") as f:
                 return f.read()
         if name == "write_file":
-            os.makedirs(os.path.dirname(args["path"]) or ".", exist_ok=True)
-            with open(args["path"], "w") as f:
+            target = _resolve_workspace_path(workspace, args["path"])
+            os.makedirs(target.parent, exist_ok=True)
+            with open(target, "w") as f:
                 f.write(args["content"])
             return f"Wrote {args['path']}"
         if name == "run_shell":
@@ -73,11 +87,11 @@ def execute_tool(name: str, args: dict) -> str:
                 capture_output=True,
                 text=True,
                 timeout=120,
-                cwd=os.getcwd(),
+                cwd=_workspace_root(workspace),
             )
             return (result.stdout + result.stderr)[:4000]
         if name == "list_dir":
-            return "\n".join(os.listdir(args["path"]))
+            return "\n".join(os.listdir(_resolve_workspace_path(workspace, args["path"])))
         return "Unknown tool"
     except Exception as e:
         return f"Error: {e}"
