@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+out/
+node_modules/
+.vscode-test/
+.codex_memory/
